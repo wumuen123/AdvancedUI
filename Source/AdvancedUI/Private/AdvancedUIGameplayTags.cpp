@@ -14,4 +14,5 @@ namespace AdvancedUIGameplayTags {
 	UE_DEFINE_GAMEPLAY_TAG(AdvancedUI_Widet_PressAnyKeyScreen, "AdvancedUI.Widget.PressAnyKeyScreen")
 	UE_DEFINE_GAMEPLAY_TAG(AdvancedUI_Widet_MainMenu, "AdvancedUI.Widget.MainMenu")
 	UE_DEFINE_GAMEPLAY_TAG(AdvancedUI_Widet_ConfirmScreen, "AdvancedUI.Widget.ConfirmScreen")
+	UE_DEFINE_GAMEPLAY_TAG(AdvancedUI_Widet_OptionsScreen, "AdvancedUI.Widget.OptionsScreen")
 }

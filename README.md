@@ -1,1 +1,1 @@
-Just a test proj for rider ide test.
+Common UI 教程跟做

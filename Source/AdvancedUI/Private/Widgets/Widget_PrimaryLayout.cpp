@@ -15,6 +15,5 @@ void UWidget_PrimaryLayout::RegisterWidgetStack(UPARAM(meta = (Categories = "Adv
 {
 	if (!IsDesignTime() && !RegisteredWidgetStackMap.Contains(InStackTag)) { //判断是否在runtime, 以及stack中是否已经存在即将要推送的InStackTag
 		RegisteredWidgetStackMap.Add(InStackTag, InStack);
-		Debug::Print(TEXT("Widget stack registered under tag") + InStackTag.ToString());
 	}
 }
