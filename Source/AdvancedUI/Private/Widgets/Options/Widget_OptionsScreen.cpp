@@ -5,6 +5,10 @@
 #include "Input/CommonUIInputTypes.h"
 #include "ICommonInputModule.h"
 #include "AdvancedUI/Public/AdvancedUIDebugHelper.h"
+#include "Widgets/Options/OptionsDataRegistry.h"
+#include "Widgets/Components/AdvancedUITabListWidgetBase.h"
+#include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
+
 
 void UWidget_OptionsScreen::NativeOnInitialized()
 {
@@ -27,6 +31,38 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 		FSimpleDelegate::CreateUObject(this, &ThisClass::OnBackBoundActionTriggered)
 		)
 	);
+}
+
+void UWidget_OptionsScreen::NativeOnActivated()
+{
+	Super::NativeOnActivated();
+	for (UListDataObject_Collection* TabCollection : GetOrCreateDataRegistry()->GetRegisteredOptionsTabCollections())
+	{
+		if (!TabCollection)
+		{
+			continue;
+		}
+		const FName TabID = TabCollection->GetDataID();
+		if (TabListWidget_OptionsTabs->GetTabButtonBaseByID(TabID) != nullptr)
+		{
+			// Already exist means the button has been created before.
+			continue;
+		};
+
+		TabListWidget_OptionsTabs->RequestRegisterTab(TabID, TabCollection->GetDataDisplayName());
+	}
+}
+
+UOptionsDataRegistry* UWidget_OptionsScreen::GetOrCreateDataRegistry()
+{
+	if (!CreatedOwningDataRegistry)
+	{
+		CreatedOwningDataRegistry = NewObject<UOptionsDataRegistry>();
+		CreatedOwningDataRegistry->InitOptionsDataRegistry(GetOwningLocalPlayer());
+	}
+
+	checkf(CreatedOwningDataRegistry, TEXT("CreatedOwningDataRegistry is not valid somehow, check Widget_OptionsScreen.cpp for more information"))
+	return CreatedOwningDataRegistry;
 }
 
 void UWidget_OptionsScreen::OnResetBoundActionTriggered()
