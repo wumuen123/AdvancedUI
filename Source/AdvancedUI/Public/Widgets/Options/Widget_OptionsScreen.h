@@ -6,6 +6,7 @@
 #include "Widgets/Widget_ActivatableBase.h"
 #include "Widget_OptionsScreen.generated.h"
 
+class UAdvancedUICommonListView;
 class UAdvancedUITabListWidgetBase;
 class UOptionsDataRegistry;
 
@@ -30,6 +31,9 @@ private:
 	void OnResetBoundActionTriggered();
 	void OnBackBoundActionTriggered();
 
+	UFUNCTION()
+	void OnOptionsTabSelected(FName TabID);
+
 	/**
 	 * Handle the data creation in options screen. Direct access to this variable is forbidden. Due to some "Common UI nature "
 	 */
@@ -44,6 +48,9 @@ private:
 	// ***** Bound Widgets ***** //
 	UPROPERTY(meta=(BindWidget))
 	UAdvancedUITabListWidgetBase* TabListWidget_OptionsTabs;
+
+	UPROPERTY(meta=(BindWidget))
+	UAdvancedUICommonListView* CommonListView_OptionsList;
 	// ***** Bound Widgets ***** //
 	
 };
