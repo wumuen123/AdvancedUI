@@ -6,10 +6,12 @@
 #include "UObject/NoExportTypes.h"
 #include "OptionsDataRegistry.generated.h"
 
+class UListDataObject_Base;
+class UListDataObject_Collection;
 /**
  * 
  */
-class UListDataObject_Collection;
+
 
 UCLASS()
 class ADVANCEDUI_API UOptionsDataRegistry : public UObject
@@ -24,6 +26,8 @@ public:
 	void InitOptionsDataRegistry(ULocalPlayer* InOwningLocalPlayer);
 	
 	const TArray<UListDataObject_Collection*>& GetRegisteredOptionsTabCollections() const { return RegisteredOptionsTabCollections; }
+
+	TArray<UListDataObject_Base*> GetListSourceItemsBySelectedTabID(const FName& InSelectedTabID) const;
 private:
 	void InitGameplayCollectionTab();
 	void InitAudioCollectionTab();

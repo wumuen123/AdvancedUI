@@ -5,6 +5,7 @@
 #include "Input/CommonUIInputTypes.h"
 #include "ICommonInputModule.h"
 #include "AdvancedUI/Public/AdvancedUIDebugHelper.h"
+#include "Widgets/Components/AdvancedUICommonListView.h"
 #include "Widgets/Options/OptionsDataRegistry.h"
 #include "Widgets/Components/AdvancedUITabListWidgetBase.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
@@ -38,6 +39,8 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 void UWidget_OptionsScreen::NativeOnActivated()
 {
 	Super::NativeOnActivated();
+
+	// 把 DataRegistry 中注册的 tab 填充到 TabListWidget_OptionsTabs 中，至于 DataRegistry 中注册了那些，由 DataRegistry掌管
 	for (UListDataObject_Collection* TabCollection : GetOrCreateDataRegistry()->GetRegisteredOptionsTabCollections())
 	{
 		if (!TabCollection)
@@ -80,4 +83,14 @@ void UWidget_OptionsScreen::OnBackBoundActionTriggered()
 void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 {
 	Debug::Print(TEXT("New tab selected!") + TabID.ToString());
+	
+	const TArray<UListDataObject_Base*> FoundListSourceItems = GetOrCreateDataRegistry()->GetListSourceItemsBySelectedTabID(TabID);
+	CommonListView_OptionsList->SetListItems(FoundListSourceItems);
+	CommonListView_OptionsList->RequestRefresh();
+
+	if (CommonListView_OptionsList->GetNumItems() != 0)
+	{
+		CommonListView_OptionsList->NavigateToIndex(0);
+		CommonListView_OptionsList->SetSelectedIndex(0);
+	}
 }

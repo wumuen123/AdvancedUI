@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class ADVANCEDUI_API UListDataObject_Base : public UObject
 {
 	GENERATED_BODY()
