@@ -4,7 +4,7 @@
 #include "Widgets/Components/AdvancedUICommonListView.h"
 #include "Editor/WidgetCompilerLog.h"
 #include "Widgets/Options/DataAsset_DataListEntryMapping.h"
-#include "Widgets/Options/ListEntries/Widget_ListEntryBase.h"
+#include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 
 
@@ -16,8 +16,15 @@ UUserWidget& UAdvancedUICommonListView::OnGenerateEntryWidgetInternal(UObject* I
 		return Super::OnGenerateEntryWidgetInternal(Item, DesiredEntryClass, OwnerTable);
 	}
 
-	TSubclassOf<UWidget_ListEntryBase> FoundWidgetClass = DataListEntryMapping->FindEntryWidgetClassByDataObject(CastChecked<UListDataObject_Base>(Item));
-	return GenerateTypedEntry<UWidget_ListEntryBase>(FoundWidgetClass, OwnerTable);
+
+	if (const TSubclassOf<UWidget_ListEntry_Base> FoundWidgetClass = DataListEntryMapping->FindEntryWidgetClassByDataObject(CastChecked<UListDataObject_Base>(Item)))
+	{
+		return GenerateTypedEntry<UWidget_ListEntry_Base>(FoundWidgetClass, OwnerTable);
+	}
+	else
+	{
+		return Super::OnGenerateEntryWidgetInternal(Item, DesiredEntryClass, OwnerTable); 
+	}
 }
 
 #if WITH_EDITOR	

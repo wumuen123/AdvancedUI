@@ -2,6 +2,7 @@
 
 
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
+#include "AdvancedUIDebugHelper.h"
 
 void UListDataObject_Base::InitDataObject()
 {
@@ -11,4 +12,10 @@ void UListDataObject_Base::InitDataObject()
 
 void UListDataObject_Base::OnDataObjectInitialized()
 {
+}
+
+void UListDataObject_Base::NotifyListDataModified(UListDataObject_Base* ModifiedData,
+	const EOptionsListDataModifyReason ModifiedReason)
+{
+	OnListDataModified.Broadcast(ModifiedData, ModifiedReason);
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AdvancedUITypes/AdvancedUIEnumTypes.h"
 #include "ListDataObject_Base.generated.h"
 
 #define LIST_DATA_ACCESSOR(DataType, PropertyName) \
@@ -17,6 +18,10 @@ class ADVANCEDUI_API UListDataObject_Base : public UObject
 {
 	GENERATED_BODY()
 public:
+	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnListDataModifiedDelegate, UListDataObject_Base*, EOptionsListDataModifyReason)
+
+	FOnListDataModifiedDelegate OnListDataModified;
+	
 	// Getters and Setters
 	LIST_DATA_ACCESSOR(FName, DataID)
 	LIST_DATA_ACCESSOR(FText, DataDisplayName)
@@ -42,6 +47,8 @@ protected:
 	 * The child classes should implement it, to handle theirs initialization needed accordingly. (Take care of its own business because it can be children)
 	 */
 	virtual void OnDataObjectInitialized();
+
+	virtual void NotifyListDataModified(UListDataObject_Base* ModifiedData, const EOptionsListDataModifyReason ModifiedReason = EOptionsListDataModifyReason::DirectlyModified);
 
 private:
 	FName DataID;
