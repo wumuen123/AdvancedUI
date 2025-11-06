@@ -3,6 +3,8 @@
 
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 #include "AdvancedUIDebugHelper.h"
+#include "AdvancedUISettings/AdvancedUIGameUserSettings.h"
+
 
 void UListDataObject_Base::InitDataObject()
 {
@@ -18,4 +20,8 @@ void UListDataObject_Base::NotifyListDataModified(UListDataObject_Base* Modified
 	const EOptionsListDataModifyReason ModifiedReason)
 {
 	OnListDataModified.Broadcast(ModifiedData, ModifiedReason);
+	if (bShouldApplyChangeImmediately)
+	{
+		UAdvancedUIGameUserSettings::Get()->ApplySettings(true);
+	}
 }

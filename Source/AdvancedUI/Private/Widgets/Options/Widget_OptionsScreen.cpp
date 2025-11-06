@@ -9,6 +9,9 @@
 #include "Widgets/Options/OptionsDataRegistry.h"
 #include "Widgets/Components/AdvancedUITabListWidgetBase.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
+#include "AdvancedUISettings/AdvancedUIGameUserSettings.h"
+#include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
+
 
 
 void UWidget_OptionsScreen::NativeOnInitialized()
@@ -34,6 +37,9 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 	);
 
 	TabListWidget_OptionsTabs->OnTabSelected.AddUniqueDynamic(this, &ThisClass::OnOptionsTabSelected);
+
+	CommonListView_OptionsList->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::OnListViewItemHovered);
+	CommonListView_OptionsList->OnItemSelectionChanged().AddUObject(this, &ThisClass::OnListViewItemSelected);
 }
 
 void UWidget_OptionsScreen::NativeOnActivated()
@@ -58,6 +64,12 @@ void UWidget_OptionsScreen::NativeOnActivated()
 	}
 }
 
+void UWidget_OptionsScreen::NativeOnDeactivated()
+{
+	Super::NativeOnDeactivated();
+	UAdvancedUIGameUserSettings::Get()->ApplySettings(true);
+}
+
 UOptionsDataRegistry* UWidget_OptionsScreen::GetOrCreateDataRegistry()
 {
 	if (!CreatedOwningDataRegistry)
@@ -80,9 +92,31 @@ void UWidget_OptionsScreen::OnBackBoundActionTriggered()
 	DeactivateWidget();
 }
 
+void UWidget_OptionsScreen::OnListViewItemHovered(UObject* InHoveredItem, bool bWasHovered)
+{
+	if (!InHoveredItem)
+	{
+		return;
+	}
+	
+	if (UWidget_ListEntry_Base* HoveredEntryWidget = CommonListView_OptionsList->GetEntryWidgetFromItem<UWidget_ListEntry_Base>(InHoveredItem))
+	{
+		HoveredEntryWidget->NativeOnListEntryWidgetHovered(bWasHovered);
+	}
+}
+
+void UWidget_OptionsScreen::OnListViewItemSelected(UObject* InSelectedItem)
+{
+	if (!InSelectedItem)
+	{
+		return;
+	}
+	const FString DebugMsg = Cast<UListDataObject_Base>(InSelectedItem)->GetDataDisplayName().ToString() + TEXT(" was selected");
+	Debug::Print(DebugMsg);
+}
+
 void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 {
-	Debug::Print(TEXT("New tab selected!") + TabID.ToString());
 	
 	const TArray<UListDataObject_Base*> FoundListSourceItems = GetOrCreateDataRegistry()->GetListSourceItemsBySelectedTabID(TabID);
 	CommonListView_OptionsList->SetListItems(FoundListSourceItems);

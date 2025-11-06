@@ -4,43 +4,12 @@
 #include "Widgets/Options/OptionsDataRegistry.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "Widgets/Options/DataObjects/ListDataObject_String.h"
+#include "Widgets/Options/OptionsDataInteractionHelper.h"
+#include "AdvancedUISettings/AdvancedUIGameUserSettings.h"
 
 
-#define INIT_COLLECTION_TAB(CollectionTabName) \
-	void UOptionsDataRegistry::Init##CollectionTabName##CollectionTab() \
-	{ \
-	UListDataObject_Collection* ##CollectionTabName##TabCollection = NewObject<UListDataObject_Collection>(); \
-	##CollectionTabName##TabCollection->SetDataID(FName(#CollectionTabName "TabCollection")); \
-	##CollectionTabName##TabCollection->SetDataDisplayName(FText::FromString(TEXT(#CollectionTabName))); \
-	\
-	/* 分别为Gameplay, Audio, Video, Control注入对应的逻辑 */ \
-	ADD_##CollectionTabName##_TAB_ITEMS(##CollectionTabName##TabCollection); \
-	\
-	RegisteredOptionsTabCollections.Add(##CollectionTabName##TabCollection); \
-	}\
-
-
-// 为 Gameplay Tab 定义特定逻辑
-#define ADD_Gameplay_TAB_ITEMS(TabCollection) \
-	UListDataObject_String* GameDifficulty = NewObject<UListDataObject_String>(); \
-	GameDifficulty->SetDataID(FName("GameDifficulty")); \
-	GameDifficulty->SetDataDisplayName(FText::FromString(TEXT("Difficulty"))); \
-	GameDifficulty->AddDynamicOption(TEXT("Easy"), FText::FromString(TEXT("Easy"))); \
-	GameDifficulty->AddDynamicOption(TEXT("Normal"), FText::FromString(TEXT("Normal"))); \
-	GameDifficulty->AddDynamicOption(TEXT("Hard"), FText::FromString(TEXT("Hard"))); \
-	GameDifficulty->AddDynamicOption(TEXT("Very Hard"), FText::FromString(TEXT("Very Hard"))); \
-	\
-	TabCollection->AddChildListData(GameDifficulty); \
-
-
-// 为 Audio Tab 定义特定逻辑
-#define ADD_Audio_TAB_ITEMS(tabCollection) \
-	int32 a = 8;\
-
-#define ADD_Video_TAB_ITEMS(tabCollection) \
-
-
-#define ADD_Control_TAB_ITEMS(tabCollection) \
+#define MAKE_OPTIONS_DATA_CONTROL(SetterOrGetterFuncName) \
+	MakeShared<FOptionsDataInteractionHelper>(GET_FUNCTION_NAME_STRING_CHECKED(UAdvancedUIGameUserSettings, SetterOrGetterFuncName)) \
 
 void UOptionsDataRegistry::InitOptionsDataRegistry(ULocalPlayer* InOwningLocalPlayer)
 {
@@ -72,8 +41,59 @@ TArray<UListDataObject_Base*> UOptionsDataRegistry::GetListSourceItemsBySelected
 	}
 }
 
-INIT_COLLECTION_TAB(Gameplay)
-INIT_COLLECTION_TAB(Audio)
-INIT_COLLECTION_TAB(Video)
-INIT_COLLECTION_TAB(Control)
+// Gameplay Collection
+void UOptionsDataRegistry::InitGameplayCollectionTab()
+{
+	UListDataObject_Collection* GameplayTabCollection = NewObject<UListDataObject_Collection>();
+	GameplayTabCollection->SetDataID(FName("GameplayTabCollection"));
+	GameplayTabCollection->SetDataDisplayName(FText::FromString(TEXT("Gameplay")));
+	
 
+	// Game Difficulty
+	{
+		UListDataObject_String* GameDifficulty = NewObject<UListDataObject_String>();
+		GameDifficulty->SetDataID(FName("GameDifficulty"));
+		GameDifficulty->SetDataDisplayName(FText::FromString(TEXT("Difficulty")));
+		GameDifficulty->AddDynamicOption(TEXT("Easy"), FText::FromString(TEXT("Easy")));
+		GameDifficulty->AddDynamicOption(TEXT("Normal"), FText::FromString(TEXT("Normal")));
+		GameDifficulty->AddDynamicOption(TEXT("Hard"), FText::FromString(TEXT("Hard")));
+		GameDifficulty->AddDynamicOption(TEXT("Very Hard"), FText::FromString(TEXT("Very Hard")));
+		GameDifficulty->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentGameDifficulty));
+		GameDifficulty->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetCurrentGameDifficulty));
+		GameDifficulty->SetShouldApplyChangeImmediately(true);
+		
+		GameplayTabCollection->AddChildListData(GameDifficulty);
+		
+	}
+	RegisteredOptionsTabCollections.Add(GameplayTabCollection);
+}
+
+// Audio Collection
+void UOptionsDataRegistry::InitAudioCollectionTab()
+{
+	UListDataObject_Collection* AudioTabCollection = NewObject<UListDataObject_Collection>();
+	AudioTabCollection->SetDataID(FName("AudioTabCollection"));
+	AudioTabCollection->SetDataDisplayName(FText::FromString(TEXT("Audio"))); \
+
+	RegisteredOptionsTabCollections.Add(AudioTabCollection);
+}
+
+// Video Collection
+void UOptionsDataRegistry::InitVideoCollectionTab()
+{
+	UListDataObject_Collection* VideoTabCollection = NewObject<UListDataObject_Collection>();
+	VideoTabCollection->SetDataID(FName("VideoTabCollection"));
+	VideoTabCollection->SetDataDisplayName(FText::FromString(TEXT("Video")));
+
+	RegisteredOptionsTabCollections.Add(VideoTabCollection);
+}
+
+// Control Collection
+void UOptionsDataRegistry::InitControlCollectionTab()
+{
+	UListDataObject_Collection* ControlTabCollection = NewObject<UListDataObject_Collection>();
+	ControlTabCollection->SetDataID(FName("ControlTabCollection"));
+	ControlTabCollection->SetDataDisplayName(FText::FromString(TEXT("Control")));
+
+	RegisteredOptionsTabCollections.Add(ControlTabCollection);
+}

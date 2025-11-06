@@ -33,7 +33,7 @@ void UListDataObject_String::AdvanceToNextOption()
 		if (DataDynamicSetter)
 		{
 			DataDynamicSetter->SetValueFromString(CurrentStringValue);
-
+			Debug::Print(TEXT("DataDynamicSetter is used. The latest value: ") + DataDynamicGetter->GetValueAsString());
 			TrySetDisplayTextFromStringValue(CurrentStringValue);
 			NotifyListDataModified(this);
 		}
@@ -61,6 +61,7 @@ void UListDataObject_String::BackToPreviousOption()
 		{
 			DataDynamicSetter->SetValueFromString(CurrentStringValue);
 
+			Debug::Print(TEXT("DataDynamicSetter is used. The latest value: ") + DataDynamicGetter->GetValueAsString());
 			TrySetDisplayTextFromStringValue(CurrentStringValue);
 			NotifyListDataModified(this);
 		}

@@ -18,7 +18,10 @@ UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
 class ADVANCEDUI_API UWidget_ListEntry_Base : public UCommonUserWidget, public IUserObjectListEntry
 {
 	GENERATED_BODY()
-
+public:
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName="On Lis tEntry Widget Hovered"))
+	void BP_OnListEntryWidgetHovered(bool bWasHovered, bool bIsEntryWidgetStillSelected);
+	void NativeOnListEntryWidgetHovered(bool bWasHovered);
 protected:
 	//~ Begin IUserObjectListEntry Interface
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
