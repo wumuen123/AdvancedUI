@@ -11,6 +11,9 @@
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "AdvancedUISettings/AdvancedUIGameUserSettings.h"
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
+#include "Widgets/Options/Widget_OptionsDetailsView.h"
+#include "Subsystems/AdvancedUISubsystem.h"
+#include "Widgets/Components/AdvancedUICommonButtonBase.h"
 
 
 
@@ -38,8 +41,8 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 
 	TabListWidget_OptionsTabs->OnTabSelected.AddUniqueDynamic(this, &ThisClass::OnOptionsTabSelected);
 
-	CommonListView_OptionsList->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::OnListViewItemHovered);
-	CommonListView_OptionsList->OnItemSelectionChanged().AddUObject(this, &ThisClass::OnListViewItemSelected);
+	CommonListView_OptionsList->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::OnListViewItemHoveredChanged);
+	CommonListView_OptionsList->OnItemSelectionChanged().AddUObject(this, &ThisClass::OnListViewItemSelectedChanged);
 }
 
 void UWidget_OptionsScreen::NativeOnActivated()
@@ -85,6 +88,53 @@ UOptionsDataRegistry* UWidget_OptionsScreen::GetOrCreateDataRegistry()
 void UWidget_OptionsScreen::OnResetBoundActionTriggered()
 {
 	Debug::Print(TEXT("ResetBoundAction Triggered!"));
+	if (ResettableDataArray.IsEmpty())
+	{
+		return;
+	}
+
+	UCommonButtonBase* SelectedTabButton = TabListWidget_OptionsTabs->GetTabButtonBaseByID(TabListWidget_OptionsTabs->GetActiveTab());
+	const FString SelectedTabButtonName = Cast<UAdvancedUICommonButtonBase>(SelectedTabButton)->GetButtonDisplayText().ToString();
+
+	UAdvancedUISubsystem::Get(this)->PushConfirmScreenToModalStackAsync(
+		EConfirmScreenType::YesNo,
+		FText::FromString(TEXT("Reset")),
+		FText::FromString(TEXT("Are you sure to reset the settings under the ") + SelectedTabButtonName + TEXT(" tab ?")),
+		[this](EConfirmScreenButtonType ClickedButtonType)->void
+		{
+			if (ClickedButtonType != EConfirmScreenButtonType::Confirmed)
+			{
+				return;
+			}
+
+			bool bHasDataFailedToReset = false;
+			
+			bIsResettingData = true;
+			for (UListDataObject_Base* DataToReset : ResettableDataArray)
+			{
+				if (!DataToReset)
+				{
+					continue;
+				}
+				if (DataToReset->TryResetToDefaultValue())
+				{
+					Debug::Print(DataToReset->GetDataDisplayName().ToString() + TEXT("has been reset to default !"));
+				}
+				else
+				{
+					bHasDataFailedToReset = true;
+					Debug::Print(DataToReset->GetDataDisplayName().ToString() + TEXT("failed to reset !"));
+				}
+			}
+			bIsResettingData = false;
+			
+			if (!bHasDataFailedToReset)
+			{
+				ResettableDataArray.Empty();
+				RemoveActionBinding(ResetActionHandle);
+			}
+		}
+	);
 }
 
 void UWidget_OptionsScreen::OnBackBoundActionTriggered()
@@ -92,7 +142,7 @@ void UWidget_OptionsScreen::OnBackBoundActionTriggered()
 	DeactivateWidget();
 }
 
-void UWidget_OptionsScreen::OnListViewItemHovered(UObject* InHoveredItem, bool bWasHovered)
+void UWidget_OptionsScreen::OnListViewItemHoveredChanged(UObject* InHoveredItem, bool bWasHovered)
 {
 	if (!InHoveredItem)
 	{
@@ -101,22 +151,36 @@ void UWidget_OptionsScreen::OnListViewItemHovered(UObject* InHoveredItem, bool b
 	
 	if (UWidget_ListEntry_Base* HoveredEntryWidget = CommonListView_OptionsList->GetEntryWidgetFromItem<UWidget_ListEntry_Base>(InHoveredItem))
 	{
-		HoveredEntryWidget->NativeOnListEntryWidgetHovered(bWasHovered);
+		HoveredEntryWidget->NativeOnListEntryWidgetHoveredChanged(bWasHovered);
+	}
+
+	if (bWasHovered)
+	{
+		UListDataObject_Base* CastedInHoveredItem = Cast<UListDataObject_Base>(InHoveredItem);
+		DetailsView_ListEntryInfo->UpdateDetailsViewInfo(CastedInHoveredItem, TryGetEntryWidgetClassName(InHoveredItem));
+	}
+	else
+	{
+		if (UListDataObject_Base* SelectedItem = CommonListView_OptionsList->GetSelectedItem<UListDataObject_Base>())
+		{
+			DetailsView_ListEntryInfo->UpdateDetailsViewInfo(SelectedItem, TryGetEntryWidgetClassName(SelectedItem));
+		}
 	}
 }
 
-void UWidget_OptionsScreen::OnListViewItemSelected(UObject* InSelectedItem)
+void UWidget_OptionsScreen::OnListViewItemSelectedChanged(UObject* InSelectedItem)
 {
 	if (!InSelectedItem)
 	{
 		return;
 	}
-	const FString DebugMsg = Cast<UListDataObject_Base>(InSelectedItem)->GetDataDisplayName().ToString() + TEXT(" was selected");
-	Debug::Print(DebugMsg);
+	UListDataObject_Base* CastedInSelectedItem = Cast<UListDataObject_Base>(InSelectedItem);
+	DetailsView_ListEntryInfo->UpdateDetailsViewInfo(CastedInSelectedItem, TryGetEntryWidgetClassName(InSelectedItem));
 }
 
 void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 {
+	DetailsView_ListEntryInfo->ClearDetailsViewInfo();
 	
 	const TArray<UListDataObject_Base*> FoundListSourceItems = GetOrCreateDataRegistry()->GetListSourceItemsBySelectedTabID(TabID);
 	CommonListView_OptionsList->SetListItems(FoundListSourceItems);
@@ -126,5 +190,79 @@ void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 	{
 		CommonListView_OptionsList->NavigateToIndex(0);
 		CommonListView_OptionsList->SetSelectedIndex(0);
+	}
+
+	ResettableDataArray.Empty();
+	for (UListDataObject_Base* FoundListSourceItem : FoundListSourceItems)
+	{
+		if (!FoundListSourceItem)
+		{
+			continue;
+		}
+
+		// 之前绑定过了，就不要绑定了
+		if (!FoundListSourceItem->OnListDataModified.IsBoundToObject(this))
+		{
+			FoundListSourceItem->OnListDataModified.AddUObject(this, &ThisClass::OnListViewListDataModified);
+		}
+		
+		if (FoundListSourceItem->CanResetBackToDefaultValue())
+		{
+			ResettableDataArray.AddUnique(FoundListSourceItem);
+		}
+		
+	}
+
+	
+	if (ResettableDataArray.IsEmpty())
+	{
+		RemoveActionBinding(ResetActionHandle);
+	}
+	else
+	{
+		if (!GetActionBindings().Contains(ResetActionHandle))
+		{
+			AddActionBinding(ResetActionHandle);
+		}
+	}
+}
+
+FString UWidget_OptionsScreen::TryGetEntryWidgetClassName(UObject* InOwningListItem) const
+{
+	if (UUserWidget* FoundEntryWidget = CommonListView_OptionsList->GetEntryWidgetFromItem(InOwningListItem))
+	{
+		return FoundEntryWidget->GetClass()->GetName();
+	}
+	return TEXT("Entry widget not valid");
+}
+
+void UWidget_OptionsScreen::OnListViewListDataModified(UListDataObject_Base* ModifiedData,
+	EOptionsListDataModifyReason ModifyReason)
+{
+	// During the for loop of ResettableDataArray, we SHOULD NOT modify the array
+	if (!ModifiedData || bIsResettingData == true )
+	{
+		return;
+	}
+	
+	if (ModifiedData->CanResetBackToDefaultValue())
+	{
+		ResettableDataArray.AddUnique(ModifiedData);
+		if (!GetActionBindings().Contains(ResetActionHandle))
+		{
+			AddActionBinding(ResetActionHandle);
+		}
+	}
+	else
+	{
+		if (ResettableDataArray.Contains(ModifiedData))
+		{
+			ResettableDataArray.Remove(ModifiedData);
+		}
+	}
+
+	if (ResettableDataArray.IsEmpty())
+	{
+		RemoveActionBinding(ResetActionHandle);
 	}
 }

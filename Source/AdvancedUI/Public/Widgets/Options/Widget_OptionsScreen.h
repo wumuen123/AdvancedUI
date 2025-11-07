@@ -3,12 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AdvancedUITypes/AdvancedUIEnumTypes.h"
 #include "Widgets/Widget_ActivatableBase.h"
 #include "Widget_OptionsScreen.generated.h"
 
 class UAdvancedUICommonListView;
 class UAdvancedUITabListWidgetBase;
 class UOptionsDataRegistry;
+class UWidget_OptionsDetailsView;
+class UListDataObject_Base;
 
 /**
  * 
@@ -32,11 +35,15 @@ private:
 	void OnResetBoundActionTriggered();
 	void OnBackBoundActionTriggered();
 
-	void OnListViewItemHovered(UObject* InHoveredItem, bool bWasHovered);
-	void OnListViewItemSelected(UObject* InSelectedItem);
+	void OnListViewItemHoveredChanged(UObject* InHoveredItem, bool bWasHovered); // 适用于 hovered, unhovered 两种情况
+	void OnListViewItemSelectedChanged(UObject* InSelectedItem); // 
 
 	UFUNCTION()
 	void OnOptionsTabSelected(FName TabID);
+
+	FString TryGetEntryWidgetClassName(UObject* InOwningListItem) const;
+
+	void OnListViewListDataModified(UListDataObject_Base* ModifiedData, EOptionsListDataModifyReason ModifyReason);
 
 	/**
 	 * Handle the data creation in options screen. Direct access to this variable is forbidden. Due to some "Common UI nature "
@@ -49,12 +56,20 @@ private:
 	
 	FUIActionBindingHandle ResetActionHandle;
 
+	UPROPERTY(Transient)
+	TArray<UListDataObject_Base*> ResettableDataArray;
+
+	bool bIsResettingData = false;
+
 	// ***** Bound Widgets ***** //
 	UPROPERTY(meta=(BindWidget))
 	UAdvancedUITabListWidgetBase* TabListWidget_OptionsTabs;
 
 	UPROPERTY(meta=(BindWidget))
 	UAdvancedUICommonListView* CommonListView_OptionsList;
+
+	UPROPERTY(meta=(BindWidget))
+	UWidget_OptionsDetailsView* DetailsView_ListEntryInfo;
 	// ***** Bound Widgets ***** //
 	
 };

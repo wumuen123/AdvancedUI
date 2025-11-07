@@ -12,6 +12,15 @@ void UAdvancedUICommonButtonBase::SetButtonText(FText InText)
 	}
 }
 
+FText UAdvancedUICommonButtonBase::GetButtonDisplayText() const
+{
+	if (CommonTextBlock_ButtonText)
+	{
+		return CommonTextBlock_ButtonText->GetText();
+	}
+	return FText::GetEmpty();
+}
+
 void UAdvancedUICommonButtonBase::NativePreConstruct()
 {
 	Super::NativePreConstruct();

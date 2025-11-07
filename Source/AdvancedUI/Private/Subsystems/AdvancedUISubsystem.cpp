@@ -61,7 +61,7 @@ void UAdvancedUISubsystem::PushSoftWidgetToStackAsync(const FGameplayTag& InWidg
 	);
 }
 
-void UAdvancedUISubsystem::PushConfirmScreenToModalStackAynsc(EConfirmScreenType InScreenType, const FText& InScreenTitle, const FText& InScreenMessage, TFunction<void(EConfirmScreenButtonType)> ButtonClickedCallback)
+void UAdvancedUISubsystem::PushConfirmScreenToModalStackAsync(EConfirmScreenType InScreenType, const FText& InScreenTitle, const FText& InScreenMessage, TFunction<void(EConfirmScreenButtonType)> ButtonClickedCallback)
 {
 	UConfirmScreenInfoObject* CreatedInfoObject = nullptr;
 	switch (InScreenType)

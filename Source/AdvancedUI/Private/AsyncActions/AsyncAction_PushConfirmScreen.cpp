@@ -24,7 +24,7 @@ UAsyncAction_PushConfirmScreen* UAsyncAction_PushConfirmScreen::PushConfirmScree
 
 void UAsyncAction_PushConfirmScreen::Activate()
 {
-    UAdvancedUISubsystem::Get(CachedOwningWorld.Get())->PushConfirmScreenToModalStackAynsc(
+    UAdvancedUISubsystem::Get(CachedOwningWorld.Get())->PushConfirmScreenToModalStackAsync(
         CachedScreenType,
         CachedScreenTitle,
         CachedScreenMessage,

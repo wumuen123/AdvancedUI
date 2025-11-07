@@ -19,9 +19,10 @@ class ADVANCEDUI_API UWidget_ListEntry_Base : public UCommonUserWidget, public I
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName="On Lis tEntry Widget Hovered"))
-	void BP_OnListEntryWidgetHovered(bool bWasHovered, bool bIsEntryWidgetStillSelected);
-	void NativeOnListEntryWidgetHovered(bool bWasHovered);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName="On List Entry Widget Hovered Changed☝"))
+	void BP_OnListEntryWidgetHoveredChanged(bool bWasHovered, bool bIsEntryWidgetStillSelected);
+
+	void NativeOnListEntryWidgetHoveredChanged(bool bWasHovered);
 protected:
 	//~ Begin IUserObjectListEntry Interface
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
@@ -32,7 +33,9 @@ protected:
 
 	// The child class should implement it
 	virtual void OnOwningListDataObjectModified(UListDataObject_Base* OwningModifiedData, EOptionsListDataModifyReason ModifiedReason);
-	
+
+
+	void SelectThisEntryWidget();
 private:
 	// ***** Bound Widgets ***** //
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional, AllowPrivateAccess = "true"))

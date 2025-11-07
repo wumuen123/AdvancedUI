@@ -54,16 +54,25 @@ void UOptionsDataRegistry::InitGameplayCollectionTab()
 		UListDataObject_String* GameDifficulty = NewObject<UListDataObject_String>();
 		GameDifficulty->SetDataID(FName("GameDifficulty"));
 		GameDifficulty->SetDataDisplayName(FText::FromString(TEXT("Difficulty")));
+		GameDifficulty->SetDescriptionRichText(FText::FromString(TEXT("Adjust the game experience.\n\n<Bold>Easy: </><cn>如果你想沉浸在故事中，选择这个</>\n\n<Bold>Normal: </><cn>对付敌人是正常难度</>\n\n<Bold>Hard: </><cn>对付敌人难度加大</>\n\n<Bold>Very Hard: </><cn>敌人将变得非常棘手，除非你想挑战自己，否则不要选这个，你将很有可能面临卡关，破坏你的游戏体验</>")));
 		GameDifficulty->AddDynamicOption(TEXT("Easy"), FText::FromString(TEXT("Easy")));
 		GameDifficulty->AddDynamicOption(TEXT("Normal"), FText::FromString(TEXT("Normal")));
 		GameDifficulty->AddDynamicOption(TEXT("Hard"), FText::FromString(TEXT("Hard")));
 		GameDifficulty->AddDynamicOption(TEXT("Very Hard"), FText::FromString(TEXT("Very Hard")));
+		GameDifficulty->SetDefaultValueFromString("Normal");
 		GameDifficulty->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentGameDifficulty));
 		GameDifficulty->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetCurrentGameDifficulty));
 		GameDifficulty->SetShouldApplyChangeImmediately(true);
 		
 		GameplayTabCollection->AddChildListData(GameDifficulty);
 		
+	}
+
+	{
+		UListDataObject_String* TestItem = NewObject<UListDataObject_String>();
+		TestItem->SetDataID(FName("TestItem"));
+		TestItem->SetDataDisplayName(FText::FromString(TEXT("TestItem")));
+		GameplayTabCollection->AddChildListData(TestItem);
 	}
 	RegisteredOptionsTabCollections.Add(GameplayTabCollection);
 }

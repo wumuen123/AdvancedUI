@@ -43,6 +43,11 @@ public:
 	virtual bool HasChildListData() const { return false; };
 
 	void SetShouldApplyChangeImmediately(bool bShouldApplyRightAway) { bShouldApplyChangeImmediately = bShouldApplyRightAway;};
+
+	// Child class should implement it。
+	virtual bool HasDefaultValue() const { return false; }
+	virtual bool CanResetBackToDefaultValue() const { return false; }
+	virtual bool TryResetToDefaultValue() { return false; }
 protected:
 	/**
 	 * The child classes should implement it, to handle theirs initialization needed accordingly. (Take care of its own business because it can be children)

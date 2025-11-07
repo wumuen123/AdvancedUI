@@ -76,6 +76,10 @@ void UListDataObject_String::OnDataObjectInitialized()
 		CurrentStringValue = AvailableOptionsStringArray[0];
 	}
 
+	if (HasDefaultValue())
+	{
+		CurrentStringValue = DataDynamicGetter->GetValueAsString();
+	}
 	if (DataDynamicGetter.IsValid())
 	{
 		if (!DataDynamicGetter->GetValueAsString().IsEmpty())
@@ -83,15 +87,36 @@ void UListDataObject_String::OnDataObjectInitialized()
 			CurrentStringValue = DataDynamicGetter->GetValueAsString();
 		}
 	}
-
-
 	
 	if (!TrySetDisplayTextFromStringValue(CurrentStringValue))
 	{
 		CurrentDisplayText = FText::FromString(TEXT("Invalid Option"));
 	};
 	
-	/* ToDo: Read from the saved string value to set the current string value */
+}
+
+bool UListDataObject_String::CanResetBackToDefaultValue() const
+{
+	return HasDefaultValue() && CurrentStringValue != GetDefaultValueAsString();
+}
+
+bool UListDataObject_String::TryResetToDefaultValue()
+{
+	if (CanResetBackToDefaultValue())
+	{
+		CurrentStringValue = GetDefaultValueAsString();
+		TrySetDisplayTextFromStringValue(CurrentStringValue);
+
+		if (DataDynamicSetter)
+		{
+			DataDynamicSetter->SetValueFromString(CurrentStringValue);
+
+			NotifyListDataModified(this, EOptionsListDataModifyReason::ResetToDefault);
+
+			return true;
+		}
+	}
+	return false;
 }
 
 bool UListDataObject_String::TrySetDisplayTextFromStringValue(const FString& InStringValue)
